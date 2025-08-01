@@ -107,6 +107,10 @@ namespace Myrtille.Services
         private Process _process;
         private IRemoteSessionProcessCallback _callback;
 
+        private VideoRecordingService videoRecordingService;
+        private string videoOutputPath;
+
+
         public void StartProcess(
             Guid remoteSessionId,
             HostType hostType,
@@ -391,6 +395,10 @@ namespace Myrtille.Services
                 _callback = OperationContext.Current.GetCallbackChannel<IRemoteSessionProcessCallback>();
 
                 _process.Start();
+
+                videoRecordingService = new VideoRecordingService();
+                videoOutputPath= $@"C:\records\kayit_{_remoteSessionId}_{DateTime.Now:yyyyMMdd_HHmmss}.mp4";
+                videoRecordingService.StartRecording(videoOutputPath);
             }
             catch (Exception exc)
             {
@@ -417,6 +425,10 @@ namespace Myrtille.Services
                 {
                     Trace.TraceError("Failed to stop (kill) the host client process, remote session {0} ({1})", _remoteSessionId, exc);
                 }
+            }
+            if (videoRecordingService!=null)
+            {
+                videoRecordingService.StopRecording();
             }
         }
 
@@ -485,6 +497,12 @@ namespace Myrtille.Services
                 {
                     _process.Dispose();
                     _process = null;
+                }
+
+                if (videoRecordingService != null)
+                {
+                    videoRecordingService.StopRecording();
+                   
                 }
             }
         }
